@@ -54,6 +54,11 @@ print(CO2_emissions_countries.describe())
 print(energy_use_years.describe())
 print(energy_use_countries.describe())
 
+#grouping by region
+if 'Country Code' in CO2_emissions_years.columns:
+    CO2_by_region = CO2_emissions_years.groupby('Country Code')
+    print(CO2_by_region.head())
+
 selected_countries = ['United States', 'Germany', 'India', 'Brazil', 'Zimbabwe', 'Afghanistan']
 
 CO2_selected = CO2_emissions_countries[selected_countries].apply(pd.to_numeric, errors ='coerce')
@@ -203,5 +208,30 @@ moving_average_plot(CO2_beginning, window=3, title='C02 Emissions 1990-1999')
 moving_average_plot(ren_energy_beginning, window=3, title='Renewable Energy use 1990-1999')
 moving_average_plot(CO2_recent, window=3, title='CO2 emissions 2000-2020')
 moving_average_plot(ren_energy_recent, window=3, title='Renewable Energy Use 2000-2020')
+
+#performing the bootstrapping
+from stats import bootstrap
+def bootstrap_correlation(data1, data2, confidence_level=0.95, nboot=10000):
+    """ bootstrap confidence interval for the correlation"""
+    corrs=[]
+    n=len(data1)
+    
+    for i in range(nboot):
+        indices = np.random.choice(n, n, replace=True)
+        sample_corr = np.corrcoef(data1.iloc[indices], data2.iloc[indices])[0,1]
+        corrs.append(sample_corr)
+    
+    low,high = bootstrap(np.array(corrs), np.mean, confidence_level, nboot)
+    return low, high
+
+low_bound, high_bound = bootstrap_correlation(CO2_recent['United States'], ren_energy_recent['United States'])
+print('95% Confidence Interval for Correlation (US, 2000-2020): ', low_bound, high_bound)
+
+#check to see if correlation is significant
+if low_bound > 0 or high_bound < 0:
+    print('The correlation is statistically significant.')
+else:
+    print('The correlation is NOT statistically significant.')
+    
 
 
