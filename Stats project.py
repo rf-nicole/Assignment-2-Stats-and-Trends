@@ -224,14 +224,20 @@ def bootstrap_correlation(data1, data2, confidence_level=0.95, nboot=10000):
     low,high = bootstrap(np.array(corrs), np.mean, confidence_level, nboot)
     return low, high
 
-low_bound, high_bound = bootstrap_correlation(CO2_recent['United States'], ren_energy_recent['United States'])
-print('95% Confidence Interval for Correlation (US, 2000-2020): ', low_bound, high_bound)
+bootstrap_results = {}
+for country in selected_countries:
+    low_bound, high_bound = bootstrap_correlation(CO2_recent[country].dropna(), ren_energy_recent[country].dropna())
+    bootstrap_results[country] = (low_bound, high_bound)
 
-#check to see if correlation is significant
-if low_bound > 0 or high_bound < 0:
-    print('The correlation is statistically significant.')
-else:
-    print('The correlation is NOT statistically significant.')
+for country, (low_bound, high_bound) in bootstrap_results.items():
+    print('95% Confidence Interval for Correlation', country, '2000-2020: ',low_bound, high_bound)
+    
+
+    #check to see if correlation is significant
+    if low_bound > 0 or high_bound < 0:
+        print('The correlation for', country, 'is statistically significant.')
+    else:
+         print('The correlation for', country, 'is NOT statistically significant.')
     
 
 
